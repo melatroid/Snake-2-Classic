@@ -1,0 +1,306 @@
+//SNAKE C_C++_ DEV Melatroid
+
+//GNU GCC COMPILER
+
+
+#include <iostream>
+#include <stdio.h>
+#include <time.h>
+#include <windows.h>
+#include <conio.h>
+
+#define frogger	10
+
+
+bool debug=false; //ACTIVATES DEBUG MODUS
+
+
+using namespace std;
+
+
+//LAYOUT WALLS ASCII
+char hl = 205, vl = 186, xx = 206,
+tl = 201, gl = 200, tr = 187,
+gr = 188, xt = 203, xg = 202,
+xl = 204, xr = 185,
+apple =3, body=207 , head=229;
+
+   // WINDOWSIZE 30x30
+char m[28][15];//Matrix Array for Gamefield NUM= X,NUM= Y
+char c; //KEYS
+
+//PROTOTYPEN
+void welcome();
+void xwritematrix();
+void xprintmatrix();
+void xshowapple();
+void xwallslide();
+void xprintbodymatrix();
+void xshowbody();
+void xwritebodymatrix();
+void copybodycoords();
+void xresetbodymatrix();
+void xshowspecial();
+void textcolor(WORD color);
+void xspeedrules();
+
+//VARIABLEN
+ unsigned int speed=500;
+    int points=0;
+    int bX[200],bY[200];
+
+ int  shoX,sveY; //COORDS FOR SNAKE
+ int  ahoX,aveY; //START FOR APPLE
+ int  ihox,iveY; //SPECIALITEM
+    int  bodyparts=0; //COUNT THE BODYPARTS
+    int  speccou=0; //COUNT THE RANDOMISING
+ bool applebit=false; // COUNT THE APPLES
+ bool xwelco=true; //SHOWS WELCOME
+
+ char bodymatrix[28][15];//INT BODY
+ char restart = 'n';//
+ bool gameover = false; //GAMEOVER
+ bool flip=false;//FLIP SPEICALITEM
+ bool actspec=false;  //ACTIVATE SPECIALITEM
+ unsigned int  xmatrix=0,ymatrix=0; //Pointer for Gamefieldcontrol
+
+
+
+
+int main() {
+
+// OPEN CONSOLE IN FORMAT 380x400
+	HWND console = GetConsoleWindow();
+	RECT ConsoleRect;
+	GetWindowRect(console, &ConsoleRect);
+
+    MoveWindow(console, 0, 0, 380, 400, TRUE);
+
+srand((unsigned)time(NULL)); // INIT RANDOM GENERATOR
+
+welcome();
+while(restart == 'n')
+{
+
+shoX=13,sveY=7; //SET START SNAKE COORDS
+ahoX=7,aveY=5;//SET APPLE SNAKE COORDS
+ihox=8,iveY=9;//SET SPECIAL SNAKE COORDS
+gameover = false; //RESET GAMOVER
+bodyparts =0;
+speed=500;
+points=0;
+xresetbodymatrix(); //RESET THE BODY MATRIX
+
+  while(!gameover)
+{
+    if(kbhit()) // IF KEYPINUT
+    {
+        c = getch(); //CHANGE CHAR
+    }
+
+    if (c=='a') shoX--; //GO LEFT
+    if (c=='d') shoX++; //GO RIGHT
+    if (c=='w') sveY--; //GO UP
+    if (c=='s') sveY++; //GO DOWN
+
+ xwallslide(); // SLIDE WALLS // CREATE SNAKE COORD
+ xwritematrix(); // WRITE THINGS IN MATRIX
+ copybodycoords(); // COPY COORDS
+ xwritebodymatrix();  //SHOW SNAKE BODY
+
+ xshowapple(); // CREATE APPLE COORD
+ xshowspecial(); //SHOW A SPECIAL ITEM
+ xprintmatrix(); // SHOW THE GAMEFIELD
+ Sleep(speed); //CHANGE SPEED UP
+
+ if(debug)xprintbodymatrix(); //DEBUGMODUS SHOWS BODYMATRIX
+}
+
+cout << "  \n\n         GAMEOVER " << endl;
+cout << "  \n\n     Punktestand: " << points << endl<< endl<< endl;
+cout << "  \n\n     NEUSTART mit -n-" << endl;
+cin >> restart;
+
+}
+	return 0;
+}
+void welcome()
+{
+
+textcolor(frogger);
+if (welcome) {
+
+printf("\n\n\n\n                 _       \n");
+printf("                | |    II    \n");
+printf(" ___ _ __   __ _| | _____       \n");
+printf("/ __| '_ \\ / _` | |// //_\\      \n");
+printf("\\__ \\ | | | (_| |   <  __/      \n");
+printf("|___/_| |_|\\__,_|_|\\_\\___|      \n\n\n");
+printf("            W          \n");
+printf("          A S D        \n\n");
+printf("      by melatroid      \n\n\n");
+
+Sleep (2000);xwelco=false;
+    }
+}
+
+void textcolor(WORD color){
+    //eSetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_INTENSITY);
+	SetConsoleTextAttribute(::GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
+void xwallslide() //IN FUNKTION XSHOWSNAKE
+{
+
+if (shoX<0)shoX=27;
+else if (shoX==28) shoX=0;
+
+if (sveY<0) sveY=14;
+else if (sveY==15) sveY=0;
+
+}
+
+void xshowspecial()
+{
+    int i,j,itrand;
+    int shake=false;
+
+         if (applebit&&!actspec)
+         {itrand = rand() % 30 + 1; if (itrand<10){actspec=true;} else actspec=false;}
+
+         if (actspec) {itrand=rand() % 30 + 1; if (itrand < 5) shake=true;else {shake=false;} }
+
+        if ((ihox == shoX  && iveY == sveY) || shake) //IF EAT SPECIAL, SET RANDOM FIELD
+        {
+            ihox = rand() % 27 + 1;
+            iveY = rand() % 14 + 1;
+            if (!shake) points+=50;      //POINTS UP
+        }
+        while (bodymatrix [ihox][iveY] == 'b' )//IF APPLE ON A BODY FIELD;CHANGE FIELD
+            {
+            ihox = rand() % 27 + 1;
+            iveY = rand() % 14 + 1;
+            }
+
+}
+
+void xspeedrules()
+{
+     if (speed <= 500 && speed > 400) speed-=30;
+     if (speed <= 400 && speed > 300) speed-=25;
+     if (speed <= 300 && speed > 200) speed-=20;
+     if (speed <= 200 && speed > 100) speed-=15;
+     if (speed <= 100 && speed > 50)  speed-=10;
+     if (speed <= 50)  speed -=5;
+}
+
+void xshowapple()
+{
+
+    int i,j;
+
+        if (ahoX == shoX  && aveY == sveY) //IF EAT APPLE, SET RANDOM FIELD
+        {
+            ahoX = rand() % 27 + 1;
+            aveY = rand() % 14 + 1;
+            applebit=true; // APPLEBIT
+            bodyparts++;  // IN MORE BODY PART
+            xspeedrules(); // CHANGE SPEED PARAMETER
+            points+=10;                           //POINTS UP
+        }
+
+        while (bodymatrix [ahoX][aveY] == 'b' )//IF APPLE ON A BODY FIELD;CHANGE FIELD
+            {
+            ahoX = rand() % 27 + 1;
+            aveY = rand() % 14 + 1;
+            }
+}
+
+void copybodycoords()
+{
+    int      i; i=bodyparts;//i=1
+    int      j; j=i-1;      //j=0
+    int      k=0;
+
+        for (;k<=bodyparts;k++){
+            bX[i] = bX[j];
+            bY[i] = bY[j];
+            i--;j--;
+            }
+            bX[0] = shoX;
+            bY[0] = sveY;
+}
+void xwritebodymatrix()
+{
+    int i,j,k;
+        for(j=0;j<15;j++) //WRITE Y FIELD
+            {
+            for(i=0;i<28;i++)// WRITE X FIELD
+                {
+                     bodymatrix[i][j] = '.';
+                  for (k=0;k<bodyparts;k++)
+                    {
+                          if (bodyparts>=(k+1)) {if (bodymatrix[bX[k]][bY[k]]) {bodymatrix[bX[k]][bY[k]] = 'b';}}
+                    }
+                }
+            }
+}
+
+void xresetbodymatrix()
+ {
+
+int i,j;
+
+    for(j=0;j<15;j++)// RESET Y FIELD
+            {
+            for(i=0;i<28;i++)// RESET X FIELD
+                {
+                bodymatrix[i][j] = ' ';
+                }
+            }
+ }
+
+void xwritematrix()
+{
+  xmatrix=0,ymatrix=0;//WRITE FROM ZERO
+    int i,j;
+    textcolor(frogger);
+
+for(ymatrix=0;ymatrix<15;ymatrix++)
+{
+    for(xmatrix=0;xmatrix<28;xmatrix++)
+        {
+         m[xmatrix][ymatrix] = ' '; //CREATE MATRIX WITH SPACEKEY
+        if(bodymatrix[xmatrix][ymatrix] == 'b'){m[xmatrix][ymatrix] = body;}//CHECK BODY FIELDS
+        if(xmatrix == ahoX && ymatrix == aveY) {m[xmatrix][ymatrix] = apple;}//WRITE APPLE
+        if(actspec){if(xmatrix == ihox && ymatrix == iveY) {if(!flip){m[xmatrix][ymatrix] = '+'; flip=true;} else if(flip) {m[xmatrix][ymatrix] = '*'; flip=false;} }}  //WRITE SPECIAL
+        if(xmatrix == shoX && ymatrix == sveY) {m[xmatrix][ymatrix] = head;}//WRITE HEAD
+        if(bodymatrix[xmatrix][ymatrix] == 'b' && m[xmatrix][ymatrix] == head) {gameover = true;}
+        }
+    }
+}
+
+void xprintbodymatrix()
+{
+    int i,j;
+    cout << "\nBodymatrix DEBUGMODE" << endl;
+    for(j=0;j<15;j++)
+            {
+            for(i=0;i<28;i++)
+                {cout << bodymatrix[i][j];}
+            cout << endl;
+            }
+}
+
+void xprintmatrix()
+{
+   system("cls")  ;
+cout << "\n\n       Punktestand " << points << endl; //" Speed " << speed << endl;
+int i, j;
+    cout << tl; for (i=0;i<28;i++){cout << hl;}cout << tr << endl;
+    for (j=0;j<15;j++){cout << vl;for (i=0;i<28;i++) {cout << m[i][j];}cout << vl << endl;}
+    cout << gl; for (i=0;i<28;i++){cout << hl;}cout << gr << endl;
+
+//cout << "   X=" << shoX <<   "   Y="<< sveY <<  "      BODYPARTS " << bodyparts << endl;
+//cout << speed << endl;
+}
